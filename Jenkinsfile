@@ -124,7 +124,7 @@ if high:
                     echo "Build image shopflow:${env.IMAGE_TAG}"
 
                     sh '''
-                        apt-get update && apt-get install -y docker.io docker-compose curl -q
+                        apt-get update && apt-get install -y docker.io docker-compose -q
                         docker build -t shopflow:$IMAGE_TAG .
                     '''
                 }
@@ -140,6 +140,7 @@ if high:
             steps {
                 sh '''
                     docker compose -f docker-compose.staging.yml up -d --remove-orphans
+                    apt install curl -q -y
                     sleep 5
                     curl -f http://localhost:8001/health || exit 1
                     echo "Staging déployé avec succès"
