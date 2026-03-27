@@ -132,7 +132,11 @@ if high:
         }
 
         stage('Deploy Staging') {
-            when { branch 'main' }
+            when {
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.GIT_LOCAL_BRANCH == 'main'
+                }
+            }
             steps {
                 sh '''
                     docker compose -f docker-compose.staging.yml up -d --remove-orphans
