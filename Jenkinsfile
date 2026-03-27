@@ -143,7 +143,7 @@ if high:
                     docker compose -f docker-compose.staging.yml up -d --remove-orphans
                     apt install curl -q -y
                     sleep 5
-                    curl -f http://localhost:8001/health || exit 1
+                    curl -f http://shopflow-staging:8001/health || exit 1
                     echo "Staging déployé avec succès"
                 '''
             }
