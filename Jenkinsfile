@@ -8,6 +8,7 @@ pipeline {
 
     environment {
         APP_NAME = 'shopflow'
+        // IMAGE_TAG est défini dynamiquement au stage Build
     }
 
     stages {
@@ -16,58 +17,34 @@ pipeline {
                 sh '''
                     pip install --upgrade pip -q
                     pip install -r requirements.txt -q
-                    echo "Dépendances installées"
                 '''
             }
         }
 
         stage('Lint') {
             steps {
-                sh '''
-                    flake8 app/ \
-                        --max-line-length=100 \
-                        --exclude=__init__.py \
-                        --format=default
-                '''
+                sh 'flake8 app/ --max-line-length=100 --exclude=__init__.py --format=default'
             }
             post {
-                failure {
-                    echo 'Lint échoué — corriger les erreurs PEP8'
-                }
+                failure { echo 'Lint échoué — corriger les erreurs PEP8' }
             }
         }
 
         stage('Unit Tests') {
             steps {
-                sh '''
-                    pytest tests/unit/ \
-                        -v \
-                        -m unit \
-                        --junitxml=junit-unit.xml \
-                        --no-cov
-                '''
+                sh 'pytest tests/unit/ -v -m unit --junitxml=junit-unit.xml --no-cov'
             }
             post {
-                always {
-                    junit 'junit-unit.xml'
-                }
+                always { junit 'junit-unit.xml' }
             }
         }
 
         stage('Integration Tests') {
             steps {
-                sh '''
-                    pytest tests/integration/ \
-                        -v \
-                        -m integration \
-                        --junitxml=junit-integration.xml \
-                        --no-cov
-                '''
+                sh 'pytest tests/integration/ -v -m integration --junitxml=junit-integration.xml --no-cov'
             }
             post {
-                always {
-                    junit 'junit-integration.xml'
-                }
+                always { junit 'junit-integration.xml' }
             }
         }
 
@@ -94,9 +71,6 @@ pipeline {
                         reportName: 'Coverage Report'
                     ])
                 }
-                failure {
-                    echo 'Coverage < 80% — ajouter des tests'
-                }
             }
         }
 
@@ -104,17 +78,8 @@ pipeline {
             steps {
                 sh '''
                     pip install pylint bandit -q
-                    pylint app/ \
-                        --output-format=parseable \
-                        --exit-zero \
-                        > pylint-report.txt || true
-                    echo "Pylint terminé"
-
-                    bandit -r app/ \
-                        -f json \
-                        -o bandit-report.json \
-                        --exit-zero
-
+                    pylint app/ --output-format=parseable --exit-zero > pylint-report.txt || true
+                    bandit -r app/ -f json -o bandit-report.json --exit-zero
                     python3 -c "
 import json, sys
 data = json.load(open('bandit-report.json'))
@@ -122,7 +87,6 @@ high = [r for r in data.get('results',[]) if r['issue_severity'] == 'HIGH']
 if high:
     print(f'BANDIT: {len(high)} vuln HIGH détectée(s)')
     sys.exit(1)
-print('BANDIT: aucune vulnérabilité HIGH')
 "
                 '''
             }
@@ -132,6 +96,7 @@ print('BANDIT: aucune vulnérabilité HIGH')
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
+                        # Utilisation du binaire si installé ou via pip
                         pip install pysonar-scanner -q
                         pysonar-scanner \
                             -Dsonar.projectKey=shopflow \
@@ -155,52 +120,29 @@ print('BANDIT: aucune vulnérabilité HIGH')
         stage('Build Docker') {
             steps {
                 script {
-                    env.IMAGE_TAG = sh(
-                        script: 'git rev-parse --short HEAD',
-                        returnStdout: true
-                    ).trim()
-                    echo "Build image shopflow:${env.IMAGE_TAG}"
+                    env.IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     sh "docker build -t shopflow:${env.IMAGE_TAG} ."
                 }
             }
         }
 
         stage('Deploy Staging') {
-            when {
-                branch 'main'
-            }
+            when { branch 'main' }
             steps {
                 sh '''
                     export IMAGE_TAG=${IMAGE_TAG}
                     docker compose -f docker-compose.staging.yml up -d --remove-orphans
-                    docker compose -f docker-compose.staging.yml ps
                     sleep 5
                     curl -f http://localhost:8001/health || exit 1
-                    echo "Staging déployé et opérationnel"
                 '''
-            }
-            post {
-                failure {
-                    sh 'docker compose -f docker-compose.staging.yml logs --tail=50'
-                }
             }
         }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: 'junit-*.xml,coverage.xml,bandit-report.json',
-                allowEmptyArchive: true
+            archiveArtifacts artifacts: 'junit-*.xml,coverage.xml,bandit-report.json', allowEmptyArchive: true
             sh 'docker system prune -f --filter label=stage=ci || true'
-        }
-        success {
-            echo "Pipeline OK — ShopFlow:${env.IMAGE_TAG} déployé"
-        }
-        failure {
-            echo 'Pipeline FAILED — voir les logs ci-dessus'
-        }
-        unstable {
-            echo 'Pipeline instable — des tests ont échoué'
         }
     }
 }
