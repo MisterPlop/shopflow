@@ -120,12 +120,12 @@ if high:
         stage('Build Docker') {
             steps {
                 script {
-                    env.IMAGE_TAG = env.GIT_COMMIT.take(7) 
+                    env.IMAGE_TAG = env.GIT_COMMIT.take(7)
                     echo "Build image shopflow:${env.IMAGE_TAG}"
-                    
+
                     sh '''
-                        apt-get update && apt-get install -y docker.io
-                        docker build -t shopflow:${env.IMAGE_TAG} .
+                        apt-get update && apt-get install -y docker.io -q
+                        docker build -t shopflow:$IMAGE_TAG .
                     '''
                 }
             }
@@ -135,12 +135,10 @@ if high:
             when { branch 'main' }
             steps {
                 sh '''
-                    # On passe la variable Jenkins au shell
-                    export IMAGE_TAG=${env.IMAGE_TAG}
                     docker compose -f docker-compose.staging.yml up -d --remove-orphans
                     sleep 5
                     curl -f http://localhost:8001/health || exit 1
-                    echo "Staging déployé et opérationnel"
+                    echo "Staging déployé et opérationnel avec le tag $IMAGE_TAG"
                 '''
             }
         }
