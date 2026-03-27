@@ -15,6 +15,7 @@ pipeline {
         stage('Install') {
             steps {
                 sh '''
+                    apt-get update -qq && apt-get install -y git -qq
                     pip install --upgrade pip -q
                     pip install -r requirements.txt -q
                 '''
