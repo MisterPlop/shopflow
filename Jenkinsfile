@@ -32,7 +32,7 @@ pipeline {
 
         stage('Unit Tests') {
             steps {
-                sh 'pytest tests/unit/ -v -m unit --junitxml=junit-unit.xml --no-cov'
+                sh 'pytest tests/unit/ -v --junitxml=junit-unit.xml --no-cov'
             }
             post {
                 always { junit 'junit-unit.xml' }
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Integration Tests') {
             steps {
-                sh 'pytest tests/integration/ -v -m integration --junitxml=junit-integration.xml --no-cov'
+                sh 'pytest tests/integration/ -v --junitxml=junit-integration.xml --no-cov'
             }
             post {
                 always { junit 'junit-integration.xml' }
