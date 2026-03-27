@@ -142,7 +142,6 @@ if high:
     post {
         always {
             archiveArtifacts artifacts: 'junit-*.xml,coverage.xml,bandit-report.json', allowEmptyArchive: true
-            sh 'docker system prune -f --filter label=stage=ci || true'
         }
     }
 }
