@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  api:
+    image: shopflow:${IMAGE_TAG:-latest}
+    container_name: shopflow-staging
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./shopflow_staging.db
+      - REDIS_URL=redis://redis-staging:6379
+    depends_on:
+      redis-staging:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis-staging:
+    image: redis:7-alpine
+    container_name: shopflow-redis-staging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis_staging:/data
+
+volumes:
+  redis_staging:

@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: shopflow-jenkins # mdp de mon instance : 8112efd6daa14f2dbaac361fcab98a82 sq token : sqp_011349b924d4a23edbe408f9ea697323ac925e5e
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: shopflow-sonarqube # mdp de mon instance : 8112efd6daaSonarqub€
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_logs:/opt/sonarqube/logs
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+  sonar_data:
+  sonar_logs:

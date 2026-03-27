@@ -1,0 +1,11 @@
+[run]
+source = app
+omit = */migrations/*, */__init__.py, */conftest.py
+
+[report]
+fail_under = 80
+show_missing = true
+
+[html]
+directory = htmlcov
+title = ShopFlow — Coverage Report
