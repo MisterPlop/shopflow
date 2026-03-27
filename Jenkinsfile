@@ -94,7 +94,7 @@ if high:
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('sonarqube') {
                     sh '''
                         # Utilisation du binaire si installé ou via pip
                         pip install pysonar-scanner -q
