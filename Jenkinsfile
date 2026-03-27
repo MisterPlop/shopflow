@@ -132,9 +132,9 @@ if high:
         }
 
         stage('Deploy Staging') {
-            when {
+           when {
                 expression {
-                    return env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.GIT_LOCAL_BRANCH == 'main'
+                    return env.GIT_BRANCH ==~ /.*main/
                 }
             }
             steps {
