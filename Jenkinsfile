@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'python:3.11-slim'
-            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock --network shopflow_default'
         }
     }
 
