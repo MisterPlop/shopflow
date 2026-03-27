@@ -124,7 +124,7 @@ if high:
                     echo "Build image shopflow:${env.IMAGE_TAG}"
 
                     sh '''
-                        apt-get update && apt-get install -y docker.io docker-compose -q
+                        apt-get update && apt-get install -y docker.io docker-compose curl -q
                         docker build -t shopflow:$IMAGE_TAG .
                     '''
                 }
